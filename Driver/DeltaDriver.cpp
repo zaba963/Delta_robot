@@ -19,7 +19,7 @@ float t_saturate){
 	ki_down = t_ki_down;
 	kd_down = t_kd_down;
 	saturate = t_saturate;
-	intagrator = 0;
+	integrator = 0;
 }
 
 void DeltaDriver::buttonKillButtonSet(){kill_button = true;}

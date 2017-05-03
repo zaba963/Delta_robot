@@ -1,6 +1,11 @@
+#include "hFramework.h"
+#include "hCloudClient.h"
+#include <stdio.h>
 
+#ifndef DELTADRIVER
+#define DELTADRIVER
 
-class DeltaDriver.h{
+class DeltaDriver{
 private:
 	float destiny;
 	float encoder_imput;
@@ -17,7 +22,7 @@ private:
 	float ki_down;
 	float kd_down;
 	float saturate;
-	float intagrator;
+	float integrator;
 	
 	float last_time;
 	float last_errot;
@@ -37,3 +42,5 @@ public:
 	void setEncoderVolume(float volume);
 	void setInputVolume(float volume);
 };
+
+#endif
