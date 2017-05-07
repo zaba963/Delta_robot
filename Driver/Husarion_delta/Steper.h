@@ -41,10 +41,11 @@ private:
     float distance_per_step;
     float radius;
 
-    Steper();
+    
 
 public:
 
+    Steper();
     Steper(StepStick &t_controler, int t_steps_per_revolution, int t_step_divider, int t_translation_ratio);//TODO:
     void enableSpeedLimit(float volume);
     void disableSpeedLimit();

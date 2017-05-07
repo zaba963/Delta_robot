@@ -23,6 +23,7 @@ Steper::Steper(StepStick &t_controler, int t_steps_per_revolution, int t_step_di
     distance_per_step = 0;
     radius = 0;
     steps = 0;
+    set_angle_to_move = 0;
 }
 
 void Steper::enableSpeedLimit(float volume){
@@ -155,7 +156,7 @@ void Steper::update(float time_step_ms){
         if(set_angle_to_move > 0)controler->setDirection(true);
         if(set_angle_to_move < 0)controler->setDirection(false);
         if(set_step_delay < minimal_delay){set_step_delay = minimal_delay;}
-        steps = (int)(set_angle_to_move/deg_per_step);
+        steps = (int)(abs(set_angle_to_move)/deg_per_step);
         set_angle_to_move = 0;
         steps *= 2;
     }
