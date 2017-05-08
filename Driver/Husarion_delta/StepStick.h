@@ -9,7 +9,7 @@
 class StepStick{
 private:
     bool dir;
-    int steps;
+    int steps_caunt;
     bool senable;
     hSensor *port;
     bool polarity_revers;
@@ -23,6 +23,7 @@ public:
     void setDirection(bool direction);
     void toggleDirection();
     void step();
+    void steps(int caunt);
     void step(bool direction);
     void reversPolarity();
     int getSensorID();

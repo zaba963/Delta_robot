@@ -6,8 +6,8 @@
 
 Steper::Steper(){}
 
-Steper::Steper(StepStick &t_controler, int t_steps_per_revolution, int t_step_divider, int t_translation_ratio){
-    controler = &t_controler;
+Steper::Steper(hSensor &init_port, int t_steps_per_revolution, int t_step_divider, int t_translation_ratio){
+    controler = new StepStick(init_port);
     controler->steperDesable();
     speed_limit_enable = false;
     acceleration_limit_enable = false;
@@ -149,7 +149,20 @@ void Steper::rotAbsConstatnSpeed(float angle, float speed){
     rotRelConstatnSpeed(angle - poz_curent, speed);
 }
 
-void Steper::moveLinear(float distance, float speed){}//TODO:
+void Steper::moveLinear(float distance, float speed){
+    if(distance_per_step != 0){
+        float st = (distance/distance_per_step);
+        float ti = speed/distance;
+        set_angle_to_move = deg_per_step*st;
+        set_step_delay = ti/st;
+    }
+    else if(radius != 0){
+        float st = (distance/radius);
+        float ti = speed/distance;
+        set_angle_to_move = deg_per_step*st;
+        set_step_delay = ti/st;
+    }
+}
 
 void Steper::update(float time_step_ms){
     if(set_angle_to_move != 0){

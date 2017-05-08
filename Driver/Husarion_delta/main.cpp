@@ -7,39 +7,42 @@
 
 using namespace hFramework;
 
+Steper *x;
+Steper *y;
+Steper *z;
+
+void runTask(){
+	x = new Steper(hSens1, 400, 1, 12);
+	y = new Steper(hSens2, 400, 1, 12);
+	z = new Steper(hSens3, 400, 1, 12);
+	x->enableMotor();
+	y->enableMotor();
+	z->enableMotor();
+	while(true){
+		x->update(1);
+		y->update(1);
+		z->update(1);
+		sys.delay(1);
+	}
+}
+
 void hMain()
 {
-	StepStick stepx(hSens1);
-	Steper x(stepx, 400, 1, 12);
-	x.enableMotor();
-	StepStick stepy(hSens2);
-	Steper y(stepy, 400, 1, 12);
-	y.enableMotor();
-	StepStick stepz(hSens3);
-	Steper z(stepz, 400, 1, 12);
-	z.enableMotor();
+	sys.taskCreate(runTask);
 
 	float angle2 = 30;
-	int iter = 0;
 
-	x.rotRel(angle2, 1);
-	y.rotRel(angle2, 1);
-	z.rotRel(angle2, 1);
+	x->rotRel(angle2, 1);
+	y->rotRel(angle2, 1);
+	z->rotRel(angle2, 1);
 	angle2 = -angle2;
 	for (;;)
 	{	
-		if(iter == 5000){
-			x.rotRel(angle2, 1);
-			y.rotRel(angle2, 1);
-			z.rotRel(angle2, 1);
-			angle2 = -angle2;
-			iter = 0;
-			hLED1.toggle();
-		}
-		iter++;
-		x.update(1);
-		y.update(1);
-		z.update(1);
-		sys.delay(1);
+		x->rotRel(angle2, 1);
+		y->rotRel(angle2, 1);
+		z->rotRel(angle2, 1);
+		angle2 = -angle2;
+		hLED1.toggle();
+		sys.delay(5000);
 	}
 }

@@ -10,7 +10,7 @@ StepStick::StepStick(hSensor &init_port){
     dir = false;
     senable = true;
     polarity_revers = false;
-    steps = 0;
+    steps_caunt = 0;
     port = &init_port;
     port->pin2.setOut();
 	port->pin3.setOut();
@@ -47,10 +47,16 @@ void StepStick::toggleDirection(){
 void StepStick::step(){
     port->pin3.toggle();
     if(dir){
-        if(polarity_revers){steps--;}else{steps++;}
+        if(polarity_revers){steps_caunt--;}else{steps_caunt++;}
     }
     else{
-        if(polarity_revers){steps++;}else{steps--;}
+        if(polarity_revers){steps_caunt++;}else{steps_caunt--;}
+    }
+}
+
+void StepStick::steps(int caunt){
+    for(int i =0; i<caunt; i++){
+        step();
     }
 }
 
@@ -65,10 +71,10 @@ void StepStick::step(bool direction){
     }
     port->pin3.toggle();
     if(dir){
-        if(polarity_revers){steps--;}else{steps++;}
+        if(polarity_revers){steps_caunt--;}else{steps_caunt++;}
     }
     else{
-        if(polarity_revers){steps++;}else{steps--;}
+        if(polarity_revers){steps_caunt++;}else{steps_caunt--;}
     }
 }
 
@@ -81,5 +87,5 @@ int StepStick::getSensorID(){
 }
 
 int StepStick::getSteps(){
-    return steps;
+    return steps_caunt;
 }
