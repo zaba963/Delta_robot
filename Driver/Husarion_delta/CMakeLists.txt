@@ -4,4 +4,4 @@ project(ARoboCoreProject NONE)
 include(${HFRAMEWORK_PATH}/hFramework.cmake)
 enable_module(hCloudClient)
 
-add_hexecutable(myproject main.cpp StepStick.cpp Steper.cpp DeltaDriver.cpp)
+add_hexecutable(myproject main.cpp StepStick.cpp Steper.cpp DeltaDriver.cpp  StepStickAdvance.cpp)

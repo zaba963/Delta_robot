@@ -7,6 +7,7 @@
 StepStick::StepStick(){}
 
 StepStick::StepStick(hSensor &init_port){
+    motor_stop = false;
     dir = false;
     senable = true;
     polarity_revers = false;
@@ -29,7 +30,16 @@ void StepStick::steperDesable(){
     port->pin4.write(senable);
 }
 
-void StepStick::setDirection(bool direction){
+void StepStick::steperStop(){
+    motor_stop = true;
+}
+
+void StepStick::steperStart(){
+    motor_stop = false;
+}
+
+void StepStick::setDirection(bool t_direction){
+    direction = t_direction;
     if(polarity_revers){
         dir = !direction;
     }
@@ -39,18 +49,24 @@ void StepStick::setDirection(bool direction){
     port->pin2.write(dir);
 }
 
+bool StepStick::getDirection(){
+    return direction;
+}
+
 void StepStick::toggleDirection(){
     dir = !dir;
     port->pin2.write(dir);
 }
 
 void StepStick::step(){
+    if(!motor_stop){
     port->pin3.toggle();
     if(dir){
         if(polarity_revers){steps_caunt--;}else{steps_caunt++;}
     }
     else{
         if(polarity_revers){steps_caunt++;}else{steps_caunt--;}
+    }
     }
 }
 
@@ -69,13 +85,7 @@ void StepStick::step(bool direction){
         dir = !direction;
         port->pin2.write(dir);
     }
-    port->pin3.toggle();
-    if(dir){
-        if(polarity_revers){steps_caunt--;}else{steps_caunt++;}
-    }
-    else{
-        if(polarity_revers){steps_caunt++;}else{steps_caunt--;}
-    }
+    step();
 }
 
 void StepStick::reversPolarity(){

@@ -11,7 +11,7 @@
 //speed -> deg/s
 //acceleration -> deg/s^2
 const float pi = 3.1415926;
-const float minimal_delay = 1;
+const float minimal_delay = 0.5;
 
 enum angle_scale{deg, rad, grad, rot};
 
@@ -24,7 +24,9 @@ private:
     float acceleration_limit;
     StepStick *controler;
 
+    float poz_set;
     float poz_last;
+    float poz_last_temp;
     float poz_curent;
     float speed_last;
     float speed_curent;
@@ -53,6 +55,8 @@ public:
     void disableAccelerationLimit();
     void enableMotor();
     void disableMotor();
+    void stopMotor();
+    void startMotor();
     void reversPolarity();
     float getPozytion(angle_scale type = deg);
     float getSpeed(angle_scale type = deg);
@@ -64,10 +68,8 @@ public:
     void setRadius(float t_radius);
 
     void step(bool direction = false);
-    void rotRel(float angle, float step_delay = 10.0);
-    void rotAbs(float angle, float step_delay = 10.0);
-    void rotRelConstatnSpeed(float angle, float speed = 1.0);
-    void rotAbsConstatnSpeed(float angle, float speed = 1.0);
+    void rotRel(float angle);
+    void rotAbs(float angle);
     void moveLinear(float distance, float speed = 1.0);
 
     void update(float time_step_ms);

@@ -52,6 +52,14 @@ void Steper::disableMotor(){
     controler->steperDesable();
 }
 
+void Steper::stopMotor(){
+    controler->steperStop();
+}
+
+void Steper::startMotor(){
+    controler->steperStart();
+}
+
 void Steper::reversPolarity(){
     controler->reversPolarity();
 }
@@ -59,16 +67,16 @@ void Steper::reversPolarity(){
 float Steper::getPozytion(angle_scale type){
     switch(type){
         case deg :
-        return poz_curent;
+        return poz_curent / 2;
         break;
         case rad :
-        return poz_curent / 180 * pi;
+        return poz_curent / 180 * pi / 2;
         break;
         case grad :
-        return poz_curent / 360 * 1000;
+        return poz_curent / 360 * 1000 / 2;
         break;
         case rot :
-        return poz_curent / 360;
+        return poz_curent / 360 / 2;
         break;
     }
     return 0;
@@ -77,16 +85,16 @@ float Steper::getPozytion(angle_scale type){
 float Steper::getSpeed(angle_scale type){
     switch(type){
         case deg :
-        return speed_curent;
+        return speed_curent / 2;
         break;
         case rad :
-        return speed_curent / 180 * pi;
+        return speed_curent / 180 * pi / 2;
         break;
         case grad :
-        return speed_curent / 360 * 1000;
+        return speed_curent / 360 * 1000 / 2;
         break;
         case rot :
-        return speed_curent / 360;
+        return speed_curent / 360 / 2;
         break;
     }
     return 0;
@@ -95,16 +103,16 @@ float Steper::getSpeed(angle_scale type){
 float Steper::getAcceleration(angle_scale type){
     switch(type){
         case deg :
-        return acceleration_curent;
+        return acceleration_curent / 2;
         break;
         case rad :
-        return acceleration_curent / 180 * pi;
+        return acceleration_curent / 180 * pi / 2;
         break;
         case grad :
-        return acceleration_curent / 360 * 1000;
+        return acceleration_curent / 360 * 1000 / 2;
         break;
         case rot :
-        return acceleration_curent / 360;
+        return acceleration_curent / 360 / 2;
         break;
     }
     return 0;
@@ -134,19 +142,12 @@ void Steper::step(bool direction){
     controler->step(direction);
 }
 
-void Steper::rotRel(float angle, float step_delay){
+void Steper::rotRel(float angle){
     set_angle_to_move = angle;
-    set_step_delay = step_delay;
 }
 
-void Steper::rotAbs(float angle, float step_delay){
-    rotRel(angle - poz_curent, step_delay);
-}
-
-void Steper::rotRelConstatnSpeed(float angle, float speed){}//TODO:
-
-void Steper::rotAbsConstatnSpeed(float angle, float speed){
-    rotRelConstatnSpeed(angle - poz_curent, speed);
+void Steper::rotAbs(float angle){
+    rotRel(angle - poz_curent);
 }
 
 void Steper::moveLinear(float distance, float speed){
@@ -165,24 +166,63 @@ void Steper::moveLinear(float distance, float speed){
 }
 
 void Steper::update(float time_step_ms){
-    if(set_angle_to_move != 0){
-        if(set_angle_to_move > 0)controler->setDirection(true);
-        if(set_angle_to_move < 0)controler->setDirection(false);
-        if(set_step_delay < minimal_delay){set_step_delay = minimal_delay;}
+    if(set_angle_to_move != 0){poz_set = abs(set_angle_to_move);}
+    poz_last = poz_last_temp;
+    poz_last_temp = poz_curent;
+    speed_last = speed_curent;
+    speed_curent = (poz_curent - poz_last)/time_step_ms*1000;
+    acceleration_curent = (speed_curent - speed_last)/time_step_ms*1000;
+    if(set_angle_to_move > 0)controler->setDirection(true);
+    if(set_angle_to_move < 0)controler->setDirection(false);
+    if(set_angle_to_move != 0 && !acceleration_limit_enable){
+        if(speed_limit_enable){
+            set_step_delay = deg_per_step/speed_limit*1000;
+        }
+        else{
+            set_step_delay = minimal_delay;
+            }
+        
+
         steps = (int)(abs(set_angle_to_move)/deg_per_step);
         set_angle_to_move = 0;
         steps *= 2;
     }
 
+    if(acceleration_limit_enable && poz_set != 0){
+        set_angle_to_move = 0;
+        float t = (-speed_curent + (sqrt(speed_curent*speed_curent+2*acceleration_limit*deg_per_step)))/acceleration_limit;
+        if(speed_limit_enable){
+            if(speed_curent > speed_limit){
+                set_step_delay = deg_per_step/speed_limit*1000;
+                steps = 1;
+                poz_set -= deg_per_step;
+                if(poz_set < deg_per_step){poz_set = 0;}
+            }
+            else{
+                set_step_delay = t;
+                steps = 1;
+                poz_set -= deg_per_step;
+                if(poz_set < deg_per_step){poz_set = 0;}
+            }
+        }
+        else{
+            set_step_delay = t;
+            steps = 1;
+            poz_set -= deg_per_step;
+            if(poz_set < deg_per_step){poz_set = 0;}
+        }
+    }//TODO: limit trawel
 
+    if(set_step_delay < minimal_delay){set_step_delay = minimal_delay;}
     if(steps > 0){
         controler->step();
+        if(controler->getDirection()){
+            poz_curent += deg_per_step;
+        }
+        else{
+            poz_curent -= deg_per_step;
+        }
         sys.delay(set_step_delay);
         steps--;
-        poz_last = poz_curent;
-        poz_curent += deg_per_step;
-        speed_last = speed_curent;
-        speed_curent = (poz_curent - poz_last)/time_step_ms*1000;
-        acceleration_curent = (speed_curent - speed_last)/time_step_ms*1000;
     }
 }//TODO:
