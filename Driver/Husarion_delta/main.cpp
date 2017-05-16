@@ -132,6 +132,7 @@ void onButtonEvent(hId id, ButtonEventType type)
 
 void hMain()
 {
+	Serial.init(115200);
 	sys.setSysLogDev(&devNull);
 	platform.begin(&RPi);
 	platform.ui.configHandler = cfgHandler;
@@ -148,6 +149,7 @@ void hMain()
 	//z->rotRel(angle2);
 	//angle2 = -angle2;
 	//int iter = 0;
+	char c;
 	for (;;)
 	{	
 		//if(iter == 10){
@@ -158,7 +160,8 @@ void hMain()
 		//iter = 0;
 		//}
 		//iter++;
-		platform.ui.label("l1").setText("Pozytion: A:%f\tB:%f\tC:%f\nSpeed: A:%f\tB:%f\tC:%f\nAccel: A:%f\tB:%f\tC:%f", x->getPozytion(), y->getPozytion(), z->getPozytion(), x->getSpeed(), y->getSpeed(), z->getSpeed(), x->getAcceleration(), y->getAcceleration(), z->getAcceleration());
+		Serial.read(&c, 1);
+		platform.ui.label("l1").setText("Pozytion: A:%f\tB:%f\tC:%f\nSpeed: A:%f\tB:%f\tC:%f\nAccel: A:%f\tB:%f\tC:%f\ttext:%c\t%d", x->getPozytion(), y->getPozytion(), z->getPozytion(), x->getSpeed(), y->getSpeed(), z->getSpeed(), x->getAcceleration(), y->getAcceleration(), z->getAcceleration(), c, (int)c);
 		hLED1.toggle();
 		sys.delay(500);
 	}
