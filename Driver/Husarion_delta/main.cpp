@@ -4,6 +4,7 @@
 #include "StepStick.h"
 #include "Steper.h"
 #include <hSensor.h>
+#include "MatlabCom.h"
 
 using namespace hFramework;
 
@@ -38,8 +39,8 @@ void runTask2(){
 void runTask3(){
 	z = new Steper(hSens3, 400, 1, 12);
 	z->enableMotor();
-	z->enableSpeedLimit(10);
-	z->enableAccelerationLimit(10);
+	//z->enableSpeedLimit(10);
+	//z->enableAccelerationLimit(10);
 	float time_temp;
 	while(true){
 		float t = sys.getRefTime();
@@ -130,6 +131,21 @@ void onButtonEvent(hId id, ButtonEventType type)
 	}
 }
 
+void masegeTask(){
+float iter = 0;
+	for (;;)
+	{	
+
+		x->rotRel(20*sin(iter*3.14/180));
+		y->rotRel(20*sin(iter*3.14/180+3.14/3*2));
+		z->rotRel(20*sin(iter*3.14/180+3.14/3*4));
+		iter += 10;
+		sys.delay(300);
+
+		//
+	}
+}
+
 void hMain()
 {
 	Serial.init(115200);
@@ -142,27 +158,13 @@ void hMain()
 	sys.taskCreate(runTask1);
 	sys.taskCreate(runTask2);
 	sys.taskCreate(runTask3);
+	sys.taskCreate(masegeTask);
 
-	//float angle2 = 30;
-	//x->rotRel(angle2);
-	//y->rotRel(angle2);
-	//z->rotRel(angle2);
-	//angle2 = -angle2;
-	//int iter = 0;
-	char c;
+	//MatlabCom::get();
 	for (;;)
 	{	
-		//if(iter == 10){
-		//x->rotRel(angle2);
-		//y->rotRel(angle2);
-		//z->rotRel(angle2);
-		//angle2 = -angle2;
-		//iter = 0;
-		//}
-		//iter++;
-		Serial.read(&c, 1);
-		platform.ui.label("l1").setText("Pozytion: A:%f\tB:%f\tC:%f\nSpeed: A:%f\tB:%f\tC:%f\nAccel: A:%f\tB:%f\tC:%f\ttext:%c\t%d", x->getPozytion(), y->getPozytion(), z->getPozytion(), x->getSpeed(), y->getSpeed(), z->getSpeed(), x->getAcceleration(), y->getAcceleration(), z->getAcceleration(), c, (int)c);
+		platform.ui.label("l1").setText("Pozytion: A:%f\tB:%f\tC:%f\nSpeed: A:%f\tB:%f\tC:%f\nAccel: A:%f\tB:%f\tC:%f", x->getPozytion(), y->getPozytion(), z->getPozytion(), x->getSpeed(), y->getSpeed(), z->getSpeed(), x->getAcceleration(), y->getAcceleration(), z->getAcceleration());
 		hLED1.toggle();
-		sys.delay(500);
+		sys.delay(300);
 	}
 }
