@@ -16,6 +16,13 @@ MatlabCom::MatlabCom(){
     size = 0;
     word_in_buf = false;
     sys.taskCreate(MatlabComTask);
+    gcode_instr.G = N;
+    gcode_instr.A = 0;
+    gcode_instr.B = 0;
+    gcode_instr.C = 0;
+    gcode_instr.F = 0;
+    gcode_instr.E = 0;
+    gcode_instr.P = 0;
 }
 
 MatlabCom & MatlabCom::get(){
@@ -36,7 +43,11 @@ void MatlabCom::readSerial(){
     }
     else{
         buf[size] = c;
-        word_in_buf = true;
+        size++;
+        if(size == 0)
+            word_in_buf = false;
+        else
+            word_in_buf = true;
     }
 }
 
@@ -44,8 +55,20 @@ void MatlabCom::clearBuf(){
     for(int i = 0; i<128; i++){
         buf[i] = 0;
     }
+    size = 0;
 }
 
 int MatlabCom::getBufSize(){
     return size;
+}
+
+void MatlabCom::cutBuf(){
+
+
+
+    clearBuf();
+}
+
+void MatlabCom::interBuf(){
+    
 }

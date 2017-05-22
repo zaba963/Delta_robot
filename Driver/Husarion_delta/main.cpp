@@ -135,14 +135,17 @@ void masegeTask(){
 float iter = 0;
 	for (;;)
 	{	
+		MatlabCom::get().readSerial();
+		if(MatlabCom::get().isWorldInBuf()){
+			MatlabCom::get().cutBuf();
+		}
+	}
+}
 
-		x->rotRel(20*sin(iter*3.14/180));
-		y->rotRel(20*sin(iter*3.14/180+3.14/3*2));
-		z->rotRel(20*sin(iter*3.14/180+3.14/3*4));
-		iter += 10;
-		sys.delay(300);
-
-		//
+void moveTask(){
+	for (;;){
+		MatlabCom::get().interBuf();
+		sys.delay(100);
 	}
 }
 
@@ -159,6 +162,7 @@ void hMain()
 	sys.taskCreate(runTask2);
 	sys.taskCreate(runTask3);
 	sys.taskCreate(masegeTask);
+	sys.taskCreate(moveTask);
 
 	//MatlabCom::get();
 	for (;;)
