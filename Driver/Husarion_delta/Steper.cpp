@@ -138,6 +138,17 @@ void Steper::setRadius(float t_radius){
     radius = t_radius;
 }
 
+void Steper::setCurentPozytion(float pozytion){
+    poz_set = pozytion;
+    poz_last = pozytion;
+    poz_last_temp = pozytion;
+    poz_curent = pozytion;
+    speed_last = 0;
+    speed_curent = 0;
+    acceleration_curent = 0;
+    deg_per_step = 0;
+}
+
 void Steper::step(bool direction){
     controler->step(direction);
 }

@@ -66,6 +66,7 @@ public:
     void setStepsPerRevolutio(int t_steps_per_revolution);
     void setDistancePerStep(float t_distance_per_step);
     void setRadius(float t_radius);
+    void setCurentPozytion(float pozytion);
 
     void step(bool direction = false);
     void rotRel(float angle);

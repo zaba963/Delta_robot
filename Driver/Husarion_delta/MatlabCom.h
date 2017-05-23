@@ -8,6 +8,8 @@
 const float matlab_com_time = 100;
 const int buf_size = 128;
 
+void MatlabComInit();
+
 enum gcode_com{
     N, //-> neutral
     
@@ -29,12 +31,19 @@ enum gcode_com{
 
 struct m_instr{
     gcode_com G;
+    bool G_b;
     float A;
+    bool A_b;
     float B;
+    bool B_b;
     float C;
+    bool C_b;
     float F;
+    bool F_b;
     float E;
+    bool E_b;
     float P;
+    bool P_b;
     unsigned int N;
 };
 
