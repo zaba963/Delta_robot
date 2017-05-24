@@ -1,5 +1,4 @@
 #include "hFramework.h"
-#include "hCloudClient.h"
 #include <stdio.h>
 #include "StepStick.h"
 #include <hSensor.h>

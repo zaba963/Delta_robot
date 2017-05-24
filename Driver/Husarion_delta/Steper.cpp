@@ -1,5 +1,4 @@
 #include "hFramework.h"
-#include "hCloudClient.h"
 #include <stdio.h>
 #include "Steper.h"
 #include "StepStick.h"
@@ -146,7 +145,6 @@ void Steper::setCurentPozytion(float pozytion){
     speed_last = 0;
     speed_curent = 0;
     acceleration_curent = 0;
-    deg_per_step = 0;
 }
 
 void Steper::step(bool direction){

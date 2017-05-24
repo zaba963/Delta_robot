@@ -1,15 +1,23 @@
+#include <cstddef>
+#include <cstdint>
 #include "hFramework.h"
 #include <stdio.h>
+#include <iostream>
+#include <cstdio>
+#include <stdio.h>
+#include <string.h>
 #include <vector>
 #include "Delta.h"
 #include "Steper.h"
 
-Steper *a;
-Steper *b;
-Steper *c;
+using namespace hFramework;
+
+extern Steper *a;
+extern Steper *b;
+extern Steper *c;
 
 void runTask1(){
-	a = new Steper(hSens1, 400, 1, 12);
+	
 	a->enableMotor();
 	float time_temp;
 	while(true){
@@ -21,7 +29,6 @@ void runTask1(){
 }
 
 void runTask2(){
-	b = new Steper(hSens2, 400, 1, 12);
 	b->enableMotor();
 	float time_temp;
 	while(true){
@@ -33,7 +40,6 @@ void runTask2(){
 }
 
 void runTask3(){
-	c = new Steper(hSens3, 400, 1, 12);
 	c->enableMotor();
 	//c->enableSpeedLimit(10);
 	//c->enableAccelerationLimit(10);
@@ -50,6 +56,9 @@ Delta::Delta(){
     use_absolute = true;
     stopMotors = false;
     estop = false;
+    a = new Steper(hSens1, 400, 1, 12);
+    b = new Steper(hSens2, 400, 1, 12);
+    c = new Steper(hSens3, 400, 1, 12);
 }
 
 Delta & Delta::get(){
@@ -64,55 +73,68 @@ void Delta::init(){
 }
 
 void homeJointA(){
-    PIN1.setIn_pu();
+    hSens4.pin2.setIn_pu();
     bool s;
-    s = PIN1.read();
+    s = hSens4.pin2.read();
     while(!s){
     a->step(true);
-    sys.delay(10);
-    s = PIN1.read();
+    sys.delay(1);
+    s = hSens4.pin2.read();
     }
     a->setCurentPozytion(jointMax);
     a->rotAbs(0);
 }
 void homeJointB(){
-    PIN2.setIn_pu();
+    hSens4.pin3.setIn_pu();
     bool s;
-    s = PIN2.read();
+    s = hSens4.pin3.read();
     while(!s){
     b->step(true);
-    sys.delay(10);
-    s = PIN2.read();
+    sys.delay(1);
+    s = hSens4.pin3.read();
     }
     b->setCurentPozytion(jointMax);
     b->rotAbs(0);
 }
 void homeJointC(){
-    PIN3.setIn_pu();
+    hSens4.pin4.setIn_pu();
     bool s;
-    s = PIN3.read();
+    s = hSens4.pin4.read();
     while(!s){
     c->step(true);
-    sys.delay(10);
-    s = PIN3.read();
+    sys.delay(1);
+    s = hSens4.pin4.read();
     }
     c->setCurentPozytion(jointMax);
     c->rotAbs(0);
+}
+
+void switch_test(){
+    hSens4.pin2.setIn_pu();
+    hSens4.pin3.setIn_pu();
+    hSens4.pin4.setIn_pu();
+    while(true){
+        if(!hSens4.pin2.read() && !hSens4.pin3.read() && !hSens4.pin4.read()){
+            hLED2.toggle();
+        }
+    }
 }
 
 void Delta::home(DeltaJoint joint){
     if(!estop){
     switch(joint){
         case JointAll: 
-            sys.taskCreate(homeJointA);
-            sys.taskCreate(homeJointB);
-            sys.taskCreate(homeJointC);
+            homeJointA();
+            homeJointB();
+            homeJointC();
         break;
-        case JointA: sys.taskCreate(homeJointA); break;
-        case JointB: sys.taskCreate(homeJointB); break;
-        case JointC: sys.taskCreate(homeJointC); break;
+        case JointA: homeJointA(); break;
+        case JointB: homeJointB(); break;
+        case JointC: homeJointC(); break;
     }
     }
+
+    sys.taskCreate(switch_test);
 }
 
 void Delta::setToAbsolute(){
@@ -127,12 +149,12 @@ void Delta::setToRelative(){
 
 void Delta::onMagnetic(){
     if(!estop)
-    MAG.setPower(1000);
+    hMot1.setPower(1000);
 }
 
 void Delta::offMagnetic(){
     if(!estop)
-    MAG.setPower(0);
+    hMot1.setPower(0);
 }
 
 void Delta::enableMotors(){

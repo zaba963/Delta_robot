@@ -1,15 +1,15 @@
-#include "hFramework.h"
+#include <cstddef>
+#include <cstdint>
+#include "hCloudClient.h"
+#include <iostream>
+#include <cstdio>
 #include <stdio.h>
+#include <string.h>
 #include <vector>
 #include "Steper.h"
 
 #ifndef DELTACLASS
 #define DELTACLASS
-
-#define PIN1 hSens4.pin2
-#define PIN2 hSens4.pin3
-#define PIN3 hSens4.pin4
-#define MAG hMot1
 
 const float jointMax = 110;
 const float jointMin = -30;
