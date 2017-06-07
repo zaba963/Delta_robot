@@ -1,6 +1,7 @@
 #include "hFramework.h"
 #include <stdio.h>
 #include <vector>
+#include "GripperCtrl.h"
 
 #ifndef MATLABCOMCLASS
 #define MATLABCOMCLASS
@@ -45,6 +46,7 @@ struct m_instr{
     float P;
     bool P_b;
     unsigned int N;
+    bool N_b;
 };
 
 class MatlabCom {
@@ -55,6 +57,7 @@ private:
     bool word_in_buf;
     unsigned int operation_iter;
     std::vector<m_instr> gcode_instr;
+    GripperCtrl* grip;
 
     MatlabCom();
     MatlabCom(const MatlabCom &){}

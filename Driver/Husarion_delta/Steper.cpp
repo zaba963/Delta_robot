@@ -18,7 +18,7 @@ Steper::Steper(hSensor &init_port, int t_steps_per_revolution, int t_step_divide
     step_divider = t_step_divider;
     translation_ratio = t_translation_ratio;
     steps_per_revolution = t_steps_per_revolution;
-    deg_per_step = 360.0/(float)(steps_per_revolution*translation_ratio*step_divider);
+    deg_per_step = 360.0/(float)(steps_per_revolution*translation_ratio*step_divider*2);
     distance_per_step = 0;
     radius = 0;
     steps = 0;
@@ -66,16 +66,16 @@ void Steper::reversPolarity(){
 float Steper::getPozytion(angle_scale type){
     switch(type){
         case deg :
-        return poz_curent / 2;
+        return poz_curent;
         break;
         case rad :
-        return poz_curent / 180 * pi / 2;
+        return poz_curent / 180 * pi;
         break;
         case grad :
-        return poz_curent / 360 * 1000 / 2;
+        return poz_curent / 360 * 1000;
         break;
         case rot :
-        return poz_curent / 360 / 2;
+        return poz_curent / 360;
         break;
     }
     return 0;
@@ -84,16 +84,16 @@ float Steper::getPozytion(angle_scale type){
 float Steper::getSpeed(angle_scale type){
     switch(type){
         case deg :
-        return speed_curent / 2;
+        return speed_curent;
         break;
         case rad :
-        return speed_curent / 180 * pi / 2;
+        return speed_curent / 180 * pi;
         break;
         case grad :
-        return speed_curent / 360 * 1000 / 2;
+        return speed_curent / 360 * 1000;
         break;
         case rot :
-        return speed_curent / 360 / 2;
+        return speed_curent / 360;
         break;
     }
     return 0;
@@ -102,16 +102,16 @@ float Steper::getSpeed(angle_scale type){
 float Steper::getAcceleration(angle_scale type){
     switch(type){
         case deg :
-        return acceleration_curent / 2;
+        return acceleration_curent;
         break;
         case rad :
-        return acceleration_curent / 180 * pi / 2;
+        return acceleration_curent / 180 * pi;
         break;
         case grad :
-        return acceleration_curent / 360 * 1000 / 2;
+        return acceleration_curent / 360 * 1000;
         break;
         case rot :
-        return acceleration_curent / 360 / 2;
+        return acceleration_curent / 360;
         break;
     }
     return 0;
@@ -175,7 +175,9 @@ void Steper::moveLinear(float distance, float speed){
 }
 
 void Steper::update(float time_step_ms){
-    if(set_angle_to_move != 0){poz_set = abs(set_angle_to_move);}
+    if(set_angle_to_move != 0){
+        poz_set = abs(set_angle_to_move);
+        }
     poz_last = poz_last_temp;
     poz_last_temp = poz_curent;
     speed_last = speed_curent;
@@ -192,9 +194,9 @@ void Steper::update(float time_step_ms){
             }
         
 
-        steps = (int)(abs(set_angle_to_move)/deg_per_step);
+        steps += (int)(abs(set_angle_to_move)/deg_per_step);
         set_angle_to_move = 0;
-        steps *= 2;
+        //steps *= 2;
     }
 
     if(acceleration_limit_enable && poz_set != 0){

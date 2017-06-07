@@ -1,20 +1,20 @@
 #include <cstddef>
 #include <cstdint>
 #include "hFramework.h"
-#include "hCloudClient.h"
 #include <iostream>
 #include <cstdio>
 #include <vector>
 #include "MatlabCom.h"
 #include "Delta.h"
+#include "GripperCtrl.h"
+
+IServo &h1 = hServoModule.servo1;
 
 void masegeTask(){
+    Serial.init(115200);
 	for (;;)
 	{	
 		MatlabCom::get().readSerial();
-		if(MatlabCom::get().isWorldInBuf()){
-			MatlabCom::get().cutBuf();
-		}
 	}
 }
 
@@ -30,20 +30,12 @@ void MatlabComInit(){
 	sys.taskCreate(moveTask);
 }
 
-void MatlabComTask(){
-    Serial.init(115200);
-    while(true){
-        if(!MatlabCom::get().isWorldInBuf()){
-            MatlabCom::get().readSerial();
-        }
-    }
-}
-
 MatlabCom::MatlabCom(){
     buf = new char[buf_size];
     size = 0;
     word_in_buf = false;
-    sys.taskCreate(MatlabComTask);
+    grip = new GripperCtrl(h1);
+    hServoModule.enablePower();
 }
 
 MatlabCom & MatlabCom::get(){
@@ -58,16 +50,22 @@ bool MatlabCom::isWorldInBuf(){
 void MatlabCom::readSerial(){
     char c;
     Serial.read(&c, 1);
-    if((int)c != 10 && size<buf_size){
+    if ((int)c == 13 || (int)c == 32){}
+    else if((int)c == 10){
+        MatlabCom::get().cutBuf();
+        word_in_buf = false;
+    }
+    else if((int)c == 'N' || (int)c == 'n'){
+        if(word_in_buf){
+            MatlabCom::get().cutBuf();
+        }
+        else{word_in_buf = true;}
         buf[size] = c;
         size++;
     }
     else{
         buf[size] = c;
-        if(size == 0)
-            word_in_buf = false;
-        else
-            word_in_buf = true;
+        size++;
     }
 }
 
@@ -84,23 +82,21 @@ int MatlabCom::getBufSize(){
 }
 
 void MatlabCom::cutBuf(){
-    m_instr t = {N, false, 0, false, 0, false, 0, false, 0, false, 0, false, 0, false, operation_iter};
-    operation_iter++;
+    m_instr t = {N, false, 0, false, 0, false, 0, false, 0, false, 0, false, 0, false, 0, false};
     char sign;
     char* t_buf;
     t_buf = new char[size-1];
-    for(int i = 0; i<size-1; i++)t_buf[i]=0;
-    for(int i = 0; i<size; i++){
+    for(int i = 0; i<size;){
+        for(int k = 0; k<size-1; k++)t_buf[k]=0;
         sign = buf[i];
         i++;
         int j = 0;
-        while(buf[i]!=(int)" " && i<size){
+        while((int)buf[i] >= ',' && (int)buf[i] <= '9'){
             t_buf[j] = buf[i];
             j++;
             i++;
         }
-        i++;
-        if(strcmp(&sign, "G") == 0){
+        if(sign == 'G' || sign == 'g'){
             t.G_b = true;
             int code = (int)atoi(t_buf);
             if(code == 0){t.G = G0;}
@@ -110,7 +106,7 @@ void MatlabCom::cutBuf(){
             if(code == 90){t.G = G90;}
             if(code == 91){t.G = G91;}
         }
-        if(strcmp(&sign, "M") == 0){
+        if(sign == 'M' || sign == 'm'){
             t.G_b = true;
             int code = (int)atoi(t_buf);
             if(code == 10){t.G = M10;}
@@ -121,12 +117,35 @@ void MatlabCom::cutBuf(){
             if(code == 114){t.G = M114;}
             if(code == 124){t.G = M124;}
         }
-        if(strcmp(&sign, "A") == 0){t.A = (float)atof(t_buf);t.A_b = true;}
-        if(strcmp(&sign, "B") == 0){t.B = (float)atof(t_buf);t.B_b = true;}
-        if(strcmp(&sign, "C") == 0){t.C = (float)atof(t_buf);t.C_b = true;}
-        if(strcmp(&sign, "E") == 0){t.E = (float)atof(t_buf);t.E_b = true;}
-        if(strcmp(&sign, "F") == 0){t.F = (float)atof(t_buf);t.F_b = true;}
-        if(strcmp(&sign, "P") == 0){t.P = (float)atof(t_buf);t.P_b = true;}
+        if(sign == 'A' || sign == 'a'){
+            t.A = (float)atof(t_buf);
+            t.A_b = true;
+            }
+        if(sign == 'B' || sign == 'b'){
+            t.B = (float)atof(t_buf);
+            t.B_b = true;
+            }
+        if(sign == 'C' || sign == 'c'){
+            t.C = (float)atof(t_buf);
+            t.C_b = true;
+            }
+        if(sign == 'E' || sign == 'e'){
+            t.E = (float)atof(t_buf);
+            t.E_b = true;
+            }
+        if(sign == 'F' || sign == 'f'){
+            t.F = (float)atof(t_buf);
+            t.F_b = true;
+            }
+        if(sign == 'P' || sign == 'p'){
+            t.P = (float)atof(t_buf);
+            t.P_b = true;
+            }
+        if((sign == 'N' || sign == 'n') && !t.N_b){
+            t.N = (float)atof(t_buf);
+            t.N_b = true;
+        }
+        
     }
     gcode_instr.push_back(t);
     clearBuf();
@@ -136,19 +155,20 @@ void MatlabCom::interBuf(){
     if(gcode_instr.size() > 0){
 
         switch(gcode_instr[0].G){
-            case N :Serial.printf("FALT N%d\n", gcode_instr[0].N);break;
+            case N :Serial.printf("FALT\r\n", gcode_instr[0].N);break;
             case G0 ://->full speed
                 if(gcode_instr[0].A_b){Delta::get().moveFullSpeed(JointA, gcode_instr[0].A);}
-                if(gcode_instr[0].B_b){Delta::get().moveFullSpeed(JointA, gcode_instr[0].A);}
-                if(gcode_instr[0].C_b){Delta::get().moveFullSpeed(JointA, gcode_instr[0].A);}
+                if(gcode_instr[0].B_b){Delta::get().moveFullSpeed(JointB, gcode_instr[0].B);}
+                if(gcode_instr[0].C_b){Delta::get().moveFullSpeed(JointC, gcode_instr[0].C);}
+                Serial.printf("OK\r\n", gcode_instr[0].N);
             break;
             case G4 ://->delay
                 if(gcode_instr[0].F_b){
                     sys.delay(gcode_instr[0].F/1000);
-                    Serial.printf("OK N%d\n", gcode_instr[0].N);
+                    Serial.printf("OK\r\n", gcode_instr[0].N);
                 }
                 else{
-                    Serial.printf("FALT N%d\n", gcode_instr[0].N);
+                    Serial.printf("FALT\r\n", gcode_instr[0].N);
                 }
             break;
             case G6 ://->joint operation
@@ -161,42 +181,42 @@ void MatlabCom::interBuf(){
                 if(gcode_instr[0].A_b){Delta::get().home(JointA);}
                 if(gcode_instr[0].B_b){Delta::get().home(JointB);}
                 if(gcode_instr[0].C_b){Delta::get().home(JointC);}
-                Serial.printf("OK N%d\n", gcode_instr[0].N);
+                Serial.printf("OK\r\n", gcode_instr[0].N);
             break;
             case G90 ://->absolute
                 Delta::get().setToAbsolute();
-                Serial.printf("OK N%d\n", gcode_instr[0].N);
+                Serial.printf("OK\r\n", gcode_instr[0].N);
             break;
             case G91 ://->relative
                 Delta::get().setToRelative();
-                Serial.printf("OK N%d\n", gcode_instr[0].N);
+                Serial.printf("OK\r\n", gcode_instr[0].N);
             break;
             case M10 ://->vacume on
-                Delta::get().onMagnetic();
-                Serial.printf("OK N%d\n", gcode_instr[0].N);
+                grip->open();
+                Serial.printf("OK\r\n", gcode_instr[0].N);
             break;
             case M11 ://->vacume off
-                Delta::get().offMagnetic();
-                Serial.printf("OK N%d\n", gcode_instr[0].N);
+                grip->close();
+                Serial.printf("OK\r\n", gcode_instr[0].N);
             break;
             case M17 ://->enable motors
                 Delta::get().enableMotors();
-                Serial.printf("OK N%d\n", gcode_instr[0].N);
+                Serial.printf("OK\r\n", gcode_instr[0].N);
             break;
             case M18 ://->disable motors
                 Delta::get().disableMotors();
-                Serial.printf("OK N%d\n", gcode_instr[0].N);
+                Serial.printf("OK\r\n", gcode_instr[0].N);
             break;
             case M112 ://->estop
                 Delta::get().estopDelta();
-                Serial.printf("OK N%d\n", gcode_instr[0].N);
+                Serial.printf("OK\r\n", gcode_instr[0].N);
             break;
             case M114 ://->return curent position
-                Serial.printf("OK N%d A%d B%d C%d\n", gcode_instr[0].N, Delta::get().getCuretntPosytion(JointA), Delta::get().getCuretntPosytion(JointB), Delta::get().getCuretntPosytion(JointC));
+                Serial.printf("OK A%f B%f C%f\r\n", gcode_instr[0].N, Delta::get().getCuretntPosytion(JointA), Delta::get().getCuretntPosytion(JointB), Delta::get().getCuretntPosytion(JointC));
             break;
             case M124 ://->stopmotors
                 Delta::get().toggleStop();
-                Serial.printf("OK N%d\n", gcode_instr[0].N);
+                Serial.printf("OK\r\n", gcode_instr[0].N);
             break;
         }
 

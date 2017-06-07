@@ -1,5 +1,5 @@
 #include "hFramework.h"
-//#include "hCloudClient.h"
+#include "hCloudClient.h"
 #include <stdio.h>
 #include "StepStick.h"
 #include "Steper.h"
@@ -13,7 +13,6 @@ Steper *c;
 
 using namespace hFramework;
 
-/*
 void cfgHandler()
 {
     platform.ui.loadHtml({Resource::WEBIDE, "/ui.html"});
@@ -82,25 +81,25 @@ void onButtonEvent(hId id, ButtonEventType type)
 		Delta::get().toggleStop();
 	}
 }
-*/
+
 void hMain()
 {
 	Serial.init(115200);
 	sys.setSysLogDev(&devNull);
-	//platform.begin(&RPi);
-	//platform.ui.configHandler = cfgHandler;
-	//platform.ui.onButtonEvent = onButtonEvent;
-	//platform.ui.setProjectId("00ace1b842b04814");
+	platform.begin(&RPi);
+	platform.ui.configHandler = cfgHandler;
+	platform.ui.onButtonEvent = onButtonEvent;
+	platform.ui.setProjectId("00ace1b842b04814");
 
-	Delta::get().home();
-	sys.delay(1000);
+	//Delta::get().home();
+	//sys.delay(1000);
 	Delta::get().init();
 	MatlabComInit();
 	
 	for (;;)
 	{	
 		//platform.ui.label("l1").setText("Pozytion: A:%f\tB:%f\tC:%f\nSpeed: A:%f\tB:%f\tC:%f\nAccel: A:%f\tB:%f\tC:%f", Delta::get().getCuretntPosytion(JointA), Delta::get().getCuretntPosytion(JointB), Delta::get().getCuretntPosytion(JointC), a->getSpeed(), b->getSpeed(), c->getSpeed(), a->getAcceleration(), b->getAcceleration(), c->getAcceleration());
-		//platform.ui.label("l1").setText("Pozytion: A:%f\tB:%f\tC:%f", Delta::get().getCuretntPosytion(JointA), Delta::get().getCuretntPosytion(JointB), Delta::get().getCuretntPosytion(JointC));
+		platform.ui.label("l1").setText("Pozytion: A:%f\tB:%f\tC:%f", Delta::get().getCuretntPosytion(JointA), Delta::get().getCuretntPosytion(JointB), Delta::get().getCuretntPosytion(JointC));
 		hLED1.toggle();
 		sys.delay(300);
 	}
